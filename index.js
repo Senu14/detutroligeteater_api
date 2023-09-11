@@ -16,7 +16,13 @@ const app = express()
 // App settings som sikrer at vi kan tilgå form data via request body
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
-app.use(cors())
+const corsOptions = {
+	origin: 'http://localhost:3000',
+  };
+  
+  app.use(cors(corsOptions));
+// Allow requests from port 3000 (your frontend)
+const allowedOrigins = ['http://localhost:3000'];
 
 // App Settings som sikrer CORS adgang via browser
 app.use((req, res, next) => {

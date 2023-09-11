@@ -7,6 +7,8 @@ import ReservationController from '../App/Controllers/reservation.controller.js'
 import ReviewsController from '../App/Controllers/review.controller.js'
 import FavoriteController from '../App/Controllers/favorite.controller.js'
 import { Authorize } from '../Middleware/auth.js'
+import { verifyToken }from '../Middleware/authMiddleware.js';
+
 
 // Event Routes
 const eventcontrol = new EventController
@@ -40,7 +42,7 @@ AppRouter.delete('/reservations/:id([0-9]*)', Authorize, (req, res) => { reserva
 const reviewcontrol = new ReviewsController
 AppRouter.get('/reviews/:event_id([0-9]*)', (req, res) => { reviewcontrol.list(req, res) })
 AppRouter.get('/reviews/details/:id([0-9]*)', (req, res) => { reviewcontrol.details(req, res) })
-AppRouter.post('/reviews', Authorize, (req, res) => { reviewcontrol.create(req, res) })
+AppRouter.post('/reviews',verifyToken, Authorize, (req, res) => { reviewcontrol.create(req, res) })
 AppRouter.put('/reviews', Authorize, (req, res) => { reviewcontrol.update(req, res) })
 AppRouter.delete('/reviews/:id([0-9]*)', Authorize, (req, res) => { reviewcontrol.remove(req, res) })
 	
