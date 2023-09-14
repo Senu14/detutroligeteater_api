@@ -117,7 +117,8 @@ const Authorize = async (req, res, next) => {
   let access_token;  
 
   if(bearerHeader && bearerHeader.includes('Bearer')) {
-    access_token = bearerHeader.substr(7) // Remove "Bearer "  
+    access_token = bearerHeader.substr(7) // Remove "Bearer "
+    console.log(access_token)  
   } else {
     res.status(401).send({ message: 'Token not accepted' })
   }
