@@ -85,11 +85,7 @@ const Authenticate = async (req, res) => {
           // Returnerer access_token til requester
           return res.json({
             access_token: access_token,
-            user: {
-              id: `${data.id}`,
-              firstname: `${data.firstname}`,
-              lastname: `${data.lastname}`
-            },
+            user_id: data.id,
             created: Date(),
           })
         } else {
@@ -111,14 +107,14 @@ const Authenticate = async (req, res) => {
  * @param {*} res
  * @param {*} next
  */
+
 const Authorize = async (req, res, next) => {
   // Henter access token fra auth header
   const bearerHeader = req.headers["authorization"]  
   let access_token;  
 
   if(bearerHeader && bearerHeader.includes('Bearer')) {
-    access_token = bearerHeader.substr(7) // Remove "Bearer "
-    console.log(access_token)  
+    access_token = bearerHeader.substr(7) // Remove "Bearer "  
   } else {
     res.status(401).send({ message: 'Token not accepted' })
   }
@@ -145,6 +141,8 @@ const Authorize = async (req, res, next) => {
             access_token,
             process.env.TOKEN_ACCESS_KEY
           ).data
+          console.log(id)
+     
           // Henter db bruger ud fra id
           Users.findOne({
             where: { id: id, is_active: 1 },
@@ -161,17 +159,14 @@ const Authorize = async (req, res, next) => {
                   if (err) {
                     switch (err.message) {
                       case "jwt expired":
-                      case "jwt malformed":
                         // Returerner besked om at refresh_token er udløbet
                         // Betyder at bruger skal logge ind igen
-                        res.status(400).send({ 
-                          message: "Refresh token malformed or expired. Please login again." 
-                        })
+                        res.json({ message: "Refresh token expired. Please login again." })
                         break
                       case "invalide token":
                         // Returnerer statuskode (400: Bad Request)
                         res.sendStatus(400)
-                        break
+                        break;
                     }
                   } else {
                     // Genererer ny access token
@@ -200,10 +195,11 @@ const Authorize = async (req, res, next) => {
                     )
 
                     // Returnerer access_token til requester
-                    return res.json({
-                      access_token: access_token,
-                      updated: Date(),
-                    })
+                    // return res.json({
+                    //   access_token: access_token,
+                    //   updated: Date(),
+                    // })
+                    req.user_id = id
                     next()
                   }
                 }
@@ -214,6 +210,7 @@ const Authorize = async (req, res, next) => {
       }
     } else {
       // Sender bruger videre til næste trin i router
+      console.log("ana lena 5")
       next()
     }
   })

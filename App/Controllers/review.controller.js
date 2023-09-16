@@ -1,7 +1,6 @@
 import Users from '../../Core/Models/user.model.js'
 import Events from '../Models/event.model.js'
 import Reviews from '../Models/review.model.js'
-import { getUserFromToken } from '../../Middleware/auth.js'
 
 // Sætter modellers relationelle forhold - een til mange
 Users.hasMany(Reviews)
@@ -85,13 +84,13 @@ class ReviewsController {
 	 * @return {number} Returnerer nyt id
 	 */
 	 create = async (req, res) => {
-		const user_id = await getUserFromToken(req, res)
-		const { subject, comment, date, num_stars, event_id } = req.body
+		const { subject, comment,  num_stars, event_id } = req.body
+		const user_id = req.user_id
+		
 
-		if(user_id && subject && comment && num_stars && event_id) {
+		if(subject && comment && num_stars !==null && event_id !== null) {
 			try {
-				req.body.user_id = user_id
-				const model = await Reviews.create(req.body)
+				const model = await Reviews.create({...req.body,user_id})
 				return res.json({
 					message: `Record created`,
 					newId: model.id
@@ -115,12 +114,11 @@ class ReviewsController {
 	 * @return {boolean} Returnerer true/false
 	 */	
 	 update = async (req, res) => {
-		const user_id = await getUserFromToken(req, res)
+
 		const { id, subject, comment, num_stars, is_active } = req.body
 
 		if(id, subject && comment && num_stars && is_active) {
 			try {
-				req.body.user_id = user_id
 				const model = await Reviews.update(req.body, {
 					where: {id: id}
 				})

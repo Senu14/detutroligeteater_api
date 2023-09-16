@@ -24,6 +24,8 @@ const corsOptions = {
 // Allow requests from port 3000 (your frontend)
 const allowedOrigins = ['http://localhost:3000'];
 
+// Configure CORS to allow only specific origins
+
 // App Settings som sikrer CORS adgang via browser
 app.use((req, res, next) => {
 	// res.append('Access-Control-Allow-Origin', ['*']);

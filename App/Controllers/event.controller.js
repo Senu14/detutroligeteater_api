@@ -4,8 +4,6 @@ import GenreModel from '../Models/genre.model.js';
 import Actors from '../Models/actor.model.js';
 import StageModel from '../Models/stage.model.js';
 import { QueryParamsHandle } from '../../Middleware/helpers.js';
-import Stages from '../Models/stage.model.js';
-import Genres from '../Models/genre.model.js';
 
 // Kalder sq Operator til search clause
 const Op = Sequelize.Op;
@@ -19,8 +17,16 @@ StageModel.hasMany(Events)
 Events.belongsTo(StageModel)
 
 // Sætter modellers relationelle forhold - mange til mange
-Actors.belongsToMany(Events, { through: 'event_actor_rel' })
-Events.belongsToMany(Actors, { through: 'event_actor_rel' })
+Actors.belongsToMany(Events, {
+through: 'event_actor_rel',
+	as: 'events',
+	foreignKey: 'actor_id'
+})
+Events.belongsToMany(Actors, {
+	through: 'event_actor_rel',
+	as: 'actors',
+	foreignKey: 'event_id'
+})
 
 class EventController {
 
@@ -72,29 +78,24 @@ class EventController {
 				const result = await Events.findAll({
 					// where clause
 					where: {
-						[Op.or]: [
 						// Søg på titel
-						{
-							title: {
-								[Op.like]: `%${req.params.keyword}%`
-							}
+						title: {
+							[Op.like]: `%${req.params.keyword}%`
 						},
-						{
-							description: {
-								[Op.like]: `%${req.params.keyword}%`
-							} 
-	
-						}]
+						// Søg på titel
+						description: {
+							[Op.like]: `%${req.params.keyword}%`
+						} 
 					},
 					// Attributter: array med felter
 					attributes: ['id', 'title', 'image', 'startdate', 'stopdate'],
 					// Inkluderer relationelle data fra artist via id
 					include: [{
-						model: Genres,
+						model: GenreModel,
 						attributes: ['id', 'name']
 					},
 					{
-						model: Stages,
+						model: StageModel,
 						attributes: ['id', 'name']
 					}]
 				})
@@ -131,14 +132,11 @@ class EventController {
 						'price', 'created_at'
 					],
 					include: [{
-						model: Genres,
+						model: GenreModel,
 						attributes: ['id', 'name']
 					}, {
-						model: Stages,
+						model: StageModel,
 						attributes: ['id', 'name']
-					}, {
-						model: Actors,
-						attributes: ['id', 'name', 'description', 'image']
 					}],
 					// Where clause
 					where: { id: req.params.id}
@@ -148,7 +146,7 @@ class EventController {
 					
 			} catch (error) {
 				res.status(403).send({
-					message: `Something went wrong: ${error}`
+					message: `Something went wrong: ${err}`
 				})					
 			}
 		} else {
