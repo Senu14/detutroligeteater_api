@@ -103,44 +103,59 @@ class ReservationController {
 	 * @return {number} Returnerer nyt id
 	 */
 	 create = async (req, res) => {
-		const { firstname, lastname, address, zipcode, city, seats } = req.body
+		const { firstname, lastname, address, zipcode, city, seats, email } = req.body
 		const lines = []
-		console.log('here it is')
-		console.log('here it is')
-		console.log(req.body)
-		console.log(firstname)
-		if(firstname && lastname && address && zipcode && city) {
 
+		if (firstname && lastname && address && zipcode && city) {
 			try {
-				const model = await Reservations.create(req.body)
-
-				await Promise.all(seats.map(async seat => {
-					try {
-						const newline = await ReservationLines.create({
-							seat_id: seat, 
-							reservation_id: model.id
-						})
-						lines.push(newline.dataValues.id);	
-					} catch (err) {
-						console.error('Kunne ikke oprette reservationslinje')
-					}
-				}))
-
-				return res.json({
-					message: `Record created`,
-					newId: model.id,
-					// reservation_line_ids: lines
-				})
+			  const model = await Reservations.create(req.body);
+			  
+			  console.log('Reservation created:', model);
+			  
+			  let seatPayload;
+			  if (Array.isArray(seats)) {
+				// Seats is an array, use it as is
+				seatPayload = seats.map(seat => ({
+				  seat_id: seat,
+				  reservation_id: model.id
+				}));
+			  } else {
+				// Seats is a single number, convert it to an array with a single element
+				seatPayload = [{
+				  seat_id: seats,
+				  reservation_id: model.id
+				}];
+			  }
+		  
+			  await Promise.all(seatPayload.map(async seat => {
+				try {
+				  const newline = await ReservationLines.create(seat);
+				  lines.push(newline.dataValues.id);
+				} catch (err) {
+				  console.error('Could not create reservation line:', err);
+				}
+			  }));
+		  
+			  console.log('Reservation lines created:', lines);
+		  
+			  return res.json({
+				message: 'Record created',
+				newId: model.id,
+			  });
 			} catch (error) {
-				res.status(418).send({
-					message: `Could not create record: ${error}`
-				})														
+			  console.error('Could not create record:', error);
+			  res.status(418).send({
+				message: `Could not create record: ${error}`,
+			  });
 			}
-		} else {
+		  } else {
+			console.error('Wrong parameter values');
 			res.status(403).send({
-				message: 'Wrong parameter values'
-			})
-		}
+			  message: 'Wrong parameter values',
+			});
+		  }
+		  
+		
 	}	
 
 	/**
