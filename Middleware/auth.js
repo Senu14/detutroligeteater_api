@@ -210,6 +210,9 @@ const Authorize = async (req, res, next) => {
       }
     } else {
       // Sender bruger videre til næste trin i router
+      //i made this console log to know if i'm authorized to go on or not
+      // when i got the message "ana lena 5" , that means i'm authorized and the next will be activated
+      //and takes me to the next function
       console.log("ana lena 5")
       next()
     }
